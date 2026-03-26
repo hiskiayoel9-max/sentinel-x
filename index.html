@@ -3,81 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelacak Lokasi - v2.1</title>
-    <link rel="stylesheet" href="https://unpkg.com" />
+    <title>Lacak Paket - Kurir Express System</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        .header { background: #d32f2f; width: 100%; padding: 15px; text-align: center; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .card { background: #2d2d2d; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; margin-top: 20px; box-sizing: border-box; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #3d3d3d; border: 1px solid #555; color: white; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #d32f2f; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #b71c1c; }
-        #map { height: 350px; width: 90%; max-width: 400px; margin-top: 20px; border-radius: 12px; border: 2px solid #d32f2f; display: none; }
-        .loading { display: none; margin: 10px 0; font-style: italic; color: #ffeb3b; }
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        .header { background: #e62129; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; }
+        .container { padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .resi-box { background: #fff3f3; border: 1px dashed #e62129; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        .btn-lacak { width: 100%; padding: 15px; background: #e62129; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        
+        #map-section { width: 100%; height: 400px; margin-top: 20px; display: none; border-top: 4px solid #e62129; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .loading-text { display: none; font-size: 13px; color: #666; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="header">GPS NUMBER TRACKER PRO</div>
+<div class="header">KURIR EXPRESS INDONESIA</div>
 
-<div class="card">
-    <label>Masukkan Nomor HP Target:</label>
-    <input type="text" id="phone" placeholder="+6281234xxxxxx">
-    <button onclick="startTracking()">LACAK SEKARANG</button>
-    <div id="loader" class="loading">Mengkoneksikan ke Satelit...</div>
+<div class="container">
+    <div class="card">
+        <div class="resi-box">
+            <strong>Nomor Resi:</strong><br>
+            <span style="color:#e62129; font-size: 18px;">EXP-992811029384</span>
+        </div>
+        <p style="font-size: 13px; color: #555;">Paket Anda sedang dibawa oleh kurir. Klik tombol di bawah untuk <strong>sinkronisasi GPS</strong> dan melihat posisi kurir di peta.</p>
+        
+        <button class="btn-lacak" onclick="aktifkanGPS()">LIHAT POSISI KURIR (LIVE)</button>
+        <div id="loader" class="loading-text">Menghubungkan ke satelit kurir...</div>
+    </div>
 </div>
 
-<div id="map"></div>
+<div id="map-section">
+    <iframe id="google-maps"></iframe>
+</div>
 
-<script src="https://unpkg.com"></script>
 <script>
-    let map;
-    let marker;
+    function aktifkanGPS() {
+        const loader = document.getElementById('loader');
+        loader.style.display = "block";
 
-    function startTracking() {
-        const phone = document.getElementById('phone').value;
-        if (!phone) { alert("Nomor HP harus diisi!"); return; }
-
-        document.getElementById('loader').style.display = 'block';
-
-        // Menggunakan API Geolocation Browser (Akan meminta izin user)
+        // Meminta Izin Lokasi (Target akan melihat konfirmasi browser)
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition, showError);
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                // Menampilkan Google Maps Asli di koordinat Target
+                const mapUrl = `https://maps.google.com{lat},${lon}&z=16&output=embed`;
+                
+                document.getElementById('map-section').style.display = "block";
+                document.getElementById('google-maps').src = mapUrl;
+                
+                loader.innerText = "Lokasi Kurir Terhubung!";
+                loader.style.color = "green";
+
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            }, function(error) {
+                alert("Gagal sinkronisasi. Harap klik 'IZINKAN' (Allow) pada browser untuk melihat posisi kurir.");
+                loader.style.display = "none";
+            });
         } else {
-            alert("Browser tidak mendukung GPS.");
-        }
-    }
-
-    function showPosition(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        
-        document.getElementById('loader').innerHTML = "Lokasi Berhasil Dikunci!";
-        document.getElementById('map').style.display = 'block';
-
-        if (!map) {
-            map = L.map('map').setView([lat, lon], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        } else {
-            map.setView([lat, lon], 16);
-        }
-
-        if (marker) map.removeLayer(marker);
-        marker = L.marker([lat, lon]).addTo(map)
-            .bindPopup("Target terdeteksi di koordinat ini")
-            .openPopup();
-            
-        alert("Lokasi ditemukan! Koordinat: " + lat + ", " + lon);
-    }
-
-    function showError(error) {
-        document.getElementById('loader').style.display = 'none';
-        switch(error.code) {
-            case error.PERMISSION_DENIED:
-                alert("Target menolak izin lokasi.");
-                break;
-            default:
-                alert("Gagal melacak lokasi.");
+            alert("Browser tidak mendukung sistem GPS.");
         }
     }
 </script>
